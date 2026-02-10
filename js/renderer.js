@@ -123,7 +123,7 @@ export class GameRenderer {
           ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
         }
 
-        // Grid lines
+        // Grid lines (lighter with sprites to avoid visual clutter)
         ctx.strokeStyle = 'rgba(0,0,0,0.08)';
         ctx.strokeRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
 
@@ -180,6 +180,12 @@ export class GameRenderer {
           ctx.textBaseline = 'middle';
           ctx.fillStyle = '#ffffff';
           ctx.fillText(obj.symbol || '?', screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2);
+        }
+
+        // Owner indicator for mines
+        if (obj.ownerId) {
+          ctx.fillStyle = obj.ownerId === 1 ? '#4488ff' : '#ff4444';
+          ctx.fillRect(screenX, screenY, 6, 6);
         }
       }
     }

@@ -33,6 +33,8 @@ export class SpriteCache {
    * Create an offscreen canvas of given size and draw on it.
    */
   createSprite(key, width, height, drawFn) {
+    // Use OffscreenCanvas when available (modern browsers), or fall back
+    // to document.createElement for older browsers / test environments (jsdom)
     const canvas = typeof OffscreenCanvas !== 'undefined'
       ? new OffscreenCanvas(width, height)
       : createFallbackCanvas(width, height);
@@ -1207,9 +1209,12 @@ function drawStar(ctx, cx, cy, innerR, points) {
 
 /**
  * Shade a hex color by a percentage (-100 to 100).
+ * Expects a 6-digit hex color string like '#4488cc'.
  */
 export function shadeColor(color, percent) {
-  const num = parseInt(color.replace('#', ''), 16);
+  const hex = color.startsWith('#') ? color.slice(1) : color;
+  const num = parseInt(hex, 16);
+  if (isNaN(num)) return color;
   const r = Math.min(255, Math.max(0, (num >> 16) + Math.floor(percent * 2.55)));
   const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + Math.floor(percent * 2.55)));
   const b = Math.min(255, Math.max(0, (num & 0x0000ff) + Math.floor(percent * 2.55)));
