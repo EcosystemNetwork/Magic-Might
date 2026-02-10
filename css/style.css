@@ -1,0 +1,131 @@
+/* ============================================================
+   Magic & Might - Game Styles
+   ============================================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #0a0a1e;
+  color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+}
+
+#game-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+}
+
+#game-canvas {
+  display: none;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+/* Loading / Start Screen */
+#loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #0a0a2e 0%, #1a0a2e 50%, #0a1a2e 100%);
+  text-align: center;
+}
+
+#loading-screen h1 {
+  font-size: 3rem;
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+  margin-bottom: 0.5rem;
+  font-family: 'Georgia', serif;
+}
+
+#loading-screen > p {
+  font-size: 1.2rem;
+  color: #aaaacc;
+  margin-bottom: 2rem;
+}
+
+#start-btn {
+  padding: 15px 50px;
+  font-size: 1.3rem;
+  background: linear-gradient(180deg, #4a6a2a 0%, #2a4a0a 100%);
+  color: #ffd700;
+  border: 2px solid #6a8a3a;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Georgia', serif;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+}
+
+#start-btn:hover {
+  background: linear-gradient(180deg, #5a8a3a 0%, #3a5a1a 100%);
+  border-color: #8aaa5a;
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(106, 138, 58, 0.4);
+}
+
+.instructions {
+  margin-top: 2rem;
+  max-width: 500px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px 30px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.instructions h3 {
+  color: #88aadd;
+  margin: 0.8rem 0 0.5rem;
+  font-size: 1rem;
+}
+
+.instructions ul {
+  list-style: none;
+  padding: 0;
+}
+
+.instructions li {
+  padding: 4px 0;
+  color: #aaaacc;
+  font-size: 0.9rem;
+}
+
+.instructions li strong {
+  color: #ffd700;
+}
+
+.instructions p {
+  color: #aaddaa;
+  font-size: 0.95rem;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #444466;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555588;
+}

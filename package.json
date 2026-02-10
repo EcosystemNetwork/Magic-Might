@@ -1,0 +1,19 @@
+{
+  "name": "magic-might",
+  "version": "1.0.0",
+  "description": "A browser-based clone of Heroes of Might and Magic - turn-based strategy game",
+  "main": "js/game.js",
+  "scripts": {
+    "start": "npx serve .",
+    "test": "node --experimental-vm-modules node_modules/.bin/jest --coverage",
+    "lint": "npx eslint js/ --ext .js"
+  },
+  "keywords": ["game", "strategy", "turn-based", "heroes-of-might-and-magic"],
+  "license": "MIT",
+  "type": "module",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "@jest/globals": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  }
+}
