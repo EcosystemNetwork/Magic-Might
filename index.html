@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Magic & Might - Heroes of Might and Magic Clone</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+
+    <div id="loading-screen">
+      <h1>⚔ Magic & Might ⚔</h1>
+      <p>A Heroes of Might and Magic Clone</p>
+      <button id="start-btn" onclick="startGame()">Start Game</button>
+      <div class="instructions">
+        <h3>How to Play</h3>
+        <ul>
+          <li><strong>Click</strong> on the map to move your hero</li>
+          <li><strong>Enter</strong> to end your turn</li>
+          <li><strong>T</strong> to open town (when hero is at a town)</li>
+          <li><strong>Tab</strong> to cycle between heroes</li>
+          <li><strong>Esc</strong> to close town view</li>
+          <li>In combat: click enemies to attack, empty cells to move</li>
+          <li><strong>W</strong> to wait, <strong>D</strong> to defend, <strong>A</strong> for auto-battle</li>
+        </ul>
+        <h3>Goal</h3>
+        <p>Build your army, capture towns and mines, and defeat the enemy!</p>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { GameController } from './js/input.js';
+
+    let gameController = null;
+
+    window.startGame = function() {
+      document.getElementById('loading-screen').style.display = 'none';
+      const canvas = document.getElementById('game-canvas');
+      canvas.style.display = 'block';
+      gameController = new GameController(canvas);
+      window.gameController = gameController;
+    };
+  </script>
+</body>
+</html>
