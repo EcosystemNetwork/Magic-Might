@@ -8,6 +8,7 @@ import { GAME_PHASES } from './game.js';
 import { RESOURCE_NAMES, RESOURCE_COLORS } from './resources.js';
 import { BUILDING_TYPES, getAvailableBuildings, FACTION_UNITS } from './town.js';
 import { UNIT_TEMPLATES } from './units.js';
+import { SpriteCache } from './artwork.js';
 
 const TILE_SIZE = 32;
 const COMBAT_CELL_SIZE = 48;
@@ -28,6 +29,10 @@ export class GameRenderer {
     this.showMinimap = true;
     this.tooltipText = '';
     this.uiPanels = [];
+
+    // Artwork sprite cache
+    this.sprites = new SpriteCache();
+    this.sprites.generateAll(TILE_SIZE, COMBAT_CELL_SIZE);
 
     this.resize();
   }
@@ -109,18 +114,17 @@ export class GameRenderer {
           continue;
         }
 
-        ctx.fillStyle = terrain.color;
-        ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+        // Draw terrain sprite
+        const terrainSprite = this.sprites.get(`terrain_${tile.terrain}`);
+        if (terrainSprite) {
+          ctx.drawImage(terrainSprite, screenX, screenY, TILE_SIZE, TILE_SIZE);
+        } else {
+          ctx.fillStyle = terrain.color;
+          ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+        }
 
-        // Draw terrain symbol
-        ctx.fillStyle = 'rgba(0,0,0,0.15)';
-        ctx.font = `${TILE_SIZE * 0.6}px monospace`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(terrain.symbol, screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2);
-
-        // Grid lines
-        ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+        // Grid lines (lighter with sprites to avoid visual clutter)
+        ctx.strokeStyle = 'rgba(0,0,0,0.08)';
         ctx.strokeRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
 
         // Dim unexplored but seen tiles
@@ -144,25 +148,46 @@ export class GameRenderer {
       const screenX = obj.x * TILE_SIZE - this.cameraX;
       const screenY = obj.y * TILE_SIZE - this.cameraY;
 
-      // Draw object background
+      // Draw object background and sprite
       if (obj.type === MAP_OBJECT_TYPES.TOWN) {
-        ctx.fillStyle = obj.ownerId === 1 ? 'rgba(68,136,255,0.3)' :
-                        obj.ownerId === 2 ? 'rgba(255,68,68,0.3)' : 'rgba(200,200,200,0.3)';
-        ctx.fillRect(screenX - 2, screenY - 2, TILE_SIZE + 4, TILE_SIZE + 4);
-      }
+        const townKey = obj.ownerId === 1 ? 'obj_TOWN_player1' :
+                        obj.ownerId === 2 ? 'obj_TOWN_player2' : 'obj_TOWN_neutral';
+        const townSprite = this.sprites.get(townKey);
+        if (townSprite) {
+          ctx.drawImage(townSprite, screenX - 4, screenY - 4, TILE_SIZE + 8, TILE_SIZE + 8);
+        } else {
+          ctx.fillStyle = obj.ownerId === 1 ? 'rgba(68,136,255,0.3)' :
+                          obj.ownerId === 2 ? 'rgba(255,68,68,0.3)' : 'rgba(200,200,200,0.3)';
+          ctx.fillRect(screenX - 2, screenY - 2, TILE_SIZE + 4, TILE_SIZE + 4);
+        }
+      } else {
+        // Try to find specific sprite for this object type
+        let spriteKey = null;
+        if (obj.type === MAP_OBJECT_TYPES.MINE_GOLD) spriteKey = 'obj_MINE_GOLD';
+        else if (obj.type === MAP_OBJECT_TYPES.MINE_WOOD) spriteKey = 'obj_MINE_WOOD';
+        else if (obj.type === MAP_OBJECT_TYPES.MINE_ORE) spriteKey = 'obj_MINE_ORE';
+        else if (obj.type === MAP_OBJECT_TYPES.MINE_GEMS) spriteKey = 'obj_MINE_GEMS';
+        else if (obj.type === MAP_OBJECT_TYPES.RESOURCE_PILE) spriteKey = 'obj_RESOURCE_PILE';
+        else if (obj.type === MAP_OBJECT_TYPES.TREASURE_CHEST) spriteKey = 'obj_TREASURE_CHEST';
+        else if (obj.type === MAP_OBJECT_TYPES.MONSTER_LAIR) spriteKey = 'obj_MONSTER_LAIR';
 
-      // Owner indicator for mines
-      if (obj.ownerId) {
-        ctx.fillStyle = obj.ownerId === 1 ? '#4488ff' : '#ff4444';
-        ctx.fillRect(screenX, screenY, 6, 6);
-      }
+        const objSprite = spriteKey ? this.sprites.get(spriteKey) : null;
+        if (objSprite) {
+          ctx.drawImage(objSprite, screenX, screenY, TILE_SIZE, TILE_SIZE);
+        } else {
+          ctx.font = `${TILE_SIZE * 0.7}px serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(obj.symbol || '?', screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2);
+        }
 
-      // Draw symbol
-      ctx.font = `${TILE_SIZE * 0.7}px serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(obj.symbol || '?', screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2);
+        // Owner indicator for mines
+        if (obj.ownerId) {
+          ctx.fillStyle = obj.ownerId === 1 ? '#4488ff' : '#ff4444';
+          ctx.fillRect(screenX, screenY, 6, 6);
+        }
+      }
     }
 
     // Draw heroes
@@ -174,16 +199,28 @@ export class GameRenderer {
       const screenX = hero.x * TILE_SIZE - this.cameraX;
       const screenY = hero.y * TILE_SIZE - this.cameraY;
 
-      // Hero circle
+      // Hero sprite
       const isSelected = gameState.selectedHero && gameState.selectedHero.id === hero.id;
-      ctx.fillStyle = hero.color;
-      ctx.beginPath();
-      ctx.arc(screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2, TILE_SIZE * 0.4, 0, Math.PI * 2);
-      ctx.fill();
+      const heroSprite = this.sprites.get(`hero_${hero.heroClass}`);
+      if (heroSprite) {
+        ctx.drawImage(heroSprite, screenX, screenY, TILE_SIZE, TILE_SIZE);
+      } else {
+        ctx.fillStyle = hero.color;
+        ctx.beginPath();
+        ctx.arc(screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2, TILE_SIZE * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.font = `${TILE_SIZE * 0.5}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText(hero.symbol, screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2);
+      }
 
       if (isSelected) {
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2, TILE_SIZE * 0.4, 0, Math.PI * 2);
         ctx.stroke();
 
         // Pulsing selection indicator
@@ -194,13 +231,6 @@ export class GameRenderer {
         ctx.arc(screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2, TILE_SIZE * 0.4 + pulse, 0, Math.PI * 2);
         ctx.stroke();
       }
-
-      // Hero symbol
-      ctx.font = `${TILE_SIZE * 0.5}px serif`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = '#ffffff';
-      ctx.fillText(hero.symbol, screenX + TILE_SIZE / 2, screenY + TILE_SIZE / 2);
 
       // Hero name
       ctx.font = '10px sans-serif';
@@ -359,12 +389,17 @@ export class GameRenderer {
             ctx.strokeRect(screenX + 1, screenY + 1, COMBAT_CELL_SIZE - 2, COMBAT_CELL_SIZE - 2);
           }
 
-          // Unit symbol
-          ctx.font = `${COMBAT_CELL_SIZE * 0.45}px serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillStyle = stack.color || '#ffffff';
-          ctx.fillText(stack.symbol || '?', screenX + COMBAT_CELL_SIZE / 2, screenY + COMBAT_CELL_SIZE / 2 - 6);
+          // Unit sprite
+          const unitSprite = stack.templateId ? this.sprites.get(`unit_${stack.templateId}`) : null;
+          if (unitSprite) {
+            ctx.drawImage(unitSprite, screenX + 2, screenY + 2, COMBAT_CELL_SIZE - 4, COMBAT_CELL_SIZE - 4);
+          } else {
+            ctx.font = `${COMBAT_CELL_SIZE * 0.45}px serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillStyle = stack.color || '#ffffff';
+            ctx.fillText(stack.symbol || '?', screenX + COMBAT_CELL_SIZE / 2, screenY + COMBAT_CELL_SIZE / 2 - 6);
+          }
 
           // Count
           ctx.font = `bold 12px sans-serif`;
